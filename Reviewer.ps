@@ -1,0 +1,24 @@
+# Get all user mailboxes with .com domain
+$mailboxes = Get-Mailbox -ResultSize Unlimited | Where-Object { $_.PrimarySmtpAddress -like '*.com' }
+
+foreach ($mbx in $mailboxes) {
+    Write-Host "Processing mailbox: $($mbx.PrimarySmtpAddress)"
+
+    # Find the Calendar folder (language-independent by FolderType)
+    $calendarFolder = Get-MailboxFolderStatistics -Identity $mbx.UserPrincipalName | Where-Object { $_.FolderType -eq 'Calendar' }
+
+    if ($calendarFolder) {
+        $calendarPath = "$($mbx.UserPrincipalName):$($calendarFolder.FolderPath -replace '\\','/')"
+
+        # Remove existing 'Default' permissions if present
+        Remove-MailboxFolderPermission -Identity $calendarPath -User Default -ErrorAction SilentlyContinue
+
+        # Add 'Reviewer' permission (view-only) for everyone in the org
+        Add-MailboxFolderPermission -Identity $calendarPath -User Default -AccessRights Reviewer -ErrorAction SilentlyContinue
+
+        Write-Host " - Calendar shared as Reviewer with 'Default'"
+    }
+    else {
+        Write-Warning " - Calendar folder not found for $($mbx.UserPrincipalName)"
+    }
+}
