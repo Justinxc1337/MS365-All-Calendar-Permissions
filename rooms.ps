@@ -1,0 +1,26 @@
+Connect-ExchangeOnline -UserPrincipalName exchangeAdminAccount@theirMS365tenant.com
+
+# Get all Room Mailboxes (meeting rooms)
+$rooms = Get-Mailbox -RecipientTypeDetails RoomMailbox -ResultSize Unlimited
+
+foreach ($room in $rooms) {
+    Write-Host "Processing room: $($room.Name) - $($room.PrimarySmtpAddress)"
+
+    # Get the calendar folder (language-independent)
+    $calendarFolder = Get-MailboxFolderStatistics -Identity $room.UserPrincipalName | Where-Object { $_.FolderType -eq 'Calendar' }
+
+    if ($calendarFolder) {
+        $calendarPath = "$($room.UserPrincipalName):$($calendarFolder.FolderPath -replace '\\','/')"
+
+        # Remove existing default permission to avoid duplication (optional)
+        Remove-MailboxFolderPermission -Identity $calendarPath -User Default -ErrorAction SilentlyContinue
+
+        # Grant Reviewer access (view-only)
+        Add-MailboxFolderPermission -Identity $calendarPath -User Default -AccessRights Reviewer -ErrorAction SilentlyContinue
+
+        Write-Host " - Calendar shared as Reviewer with 'Default'"
+    }
+    else {
+        Write-Warning " - Calendar folder not found for $($room.UserPrincipalName)"
+    }
+}
