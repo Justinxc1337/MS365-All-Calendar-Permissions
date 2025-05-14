@@ -1,3 +1,5 @@
+Connect-ExchangeOnline -UserPrincipalName exchangeAdminAccount@theirMS365tenant.com
+
 # Get all user mailboxes with .com domain
 $mailboxes = Get-Mailbox -ResultSize Unlimited | Where-Object { $_.PrimarySmtpAddress -like '*.com' }
 
