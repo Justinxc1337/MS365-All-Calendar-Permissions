@@ -1,0 +1,12 @@
+Install-Module Microsoft.Graph -Scope CurrentUser -Force
+Connect-MgGraph -Scopes "Directory.AccessAsUser.All"
+
+
+# Hent alle brugere (kan også filtreres efter behov)
+$users = Get-MgUser -All
+
+# Loop igennem brugere og fjern sessions
+foreach ($user in $users) {
+    Write-Host "Revokerer tokens for:" $user.UserPrincipalName
+    Revoke-MgUserSignInSession -UserId $user.Id
+}
