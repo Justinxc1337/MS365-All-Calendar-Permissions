@@ -1,0 +1,11 @@
+Connect-MgGraph -Scopes "User.ReadWrite.All", "Directory.AccessAsUser.All"
+
+#Get user id into string
+$user = Get-MgUser -Search UserPrincipalName:'targeted@user.com' -ConsistencyLevel Eventual
+
+#Disable user account
+Update-MgUser -UserId $user.Id -BodyParameter @{
+    AccountEnabled = $false
+}
+
+
