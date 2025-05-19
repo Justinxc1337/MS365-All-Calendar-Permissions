@@ -1,0 +1,34 @@
+# Couple of commands to check and disable a user hit from phising
+
+# Disable user
+Connect-MgGraph -Scopes "User.ReadWrite.All", "Directory.AccessAsUser.All"
+
+# Get user id into string
+$user = Get-MgUser -Search UserPrincipalName:'targeted@user.com' -ConsistencyLevel Eventual
+
+# Disable user account
+Update-MgUser -UserId $user.Id -BodyParameter @{
+    AccountEnabled = $false
+}
+
+
+# Revoke user access
+Set-ExecutionPolicy RemoteSigned
+
+Install-Module Microsoft.Graph.Authentication
+
+Install-Module Microsoft.Graph.Users.Actions
+
+Connect-MgGraph -Scopes User.RevokeSessions.All
+
+Revoke-MgUserSignInSession -UserId targeted@user.com
+
+
+# Check if user mail forwarding is enabled
+Connect-ExchangeOnline -UserPrincipalName youradmin@account.com
+
+# Check mailbox for SMTP forwarding
+Get-Mailbox -Identity targeted@user.com | Format-List Forwarding*Address,DeliverTo*
+
+# Check any inbox rules regarding forwarding
+Get-InboxRule -Mailbox targeted@user.com -IncludeHidden | Format-List Name,Enabled,RedirectTo,Forward*,Identity
