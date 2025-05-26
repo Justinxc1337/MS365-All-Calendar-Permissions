@@ -1,0 +1,11 @@
+# Connect Sharepoint
+Connect-SPOService -Url https://<tenant>-admin.sharepoint.com
+
+
+Set-SPOSite -Identity "https://<tenant>-my.sharepoint.com/personal/<name>_<tenant>_com" -Owner globalAdminAccount.com
+# OR - either one works
+Set-SPOUser -Site "https://<tenant>-my.sharepoint.com/personal/<name>_<tenant>_com" `
+    -LoginName "globalAdminAccount.com" -IsSiteCollectionAdmin $true
+
+# Browser for OneDrive url
+https://<tenant>-my.sharepoint.com/personal/<name>_<tenant>_com
